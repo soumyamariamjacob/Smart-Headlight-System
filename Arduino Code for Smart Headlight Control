@@ -1,0 +1,70 @@
+#include <Servo.h>
+
+#define LDR_PIN A0         // Pin connected to LDR
+#define IR_SENSOR_PIN D2   // Pin connected to IR sensor
+#define RAIN_SENSOR_PIN D3 // Pin connected to Rain sensor
+#define HEADLIGHT_PIN D4   // Pin connected to Relay/MOSFET for headlight
+#define SERVO_PIN D9       // Pin connected to Servo motor
+
+Servo headlightServo;
+
+void setup() {
+  pinMode(LDR_PIN, INPUT);
+  pinMode(IR_SENSOR_PIN, INPUT);
+  pinMode(RAIN_SENSOR_PIN, INPUT);
+  pinMode(HEADLIGHT_PIN, OUTPUT);
+  
+  headlightServo.attach(SERVO_PIN);
+  headlightServo.write(90);  // Initial position (straight ahead)
+
+  Serial.begin(9600);
+}
+
+void loop() {
+  int ambientLight = analogRead(LDR_PIN);
+  int irSensorState = digitalRead(IR_SENSOR_PIN);
+  int rainSensorState = digitalRead(RAIN_SENSOR_PIN);
+
+  // Automatic High/Low Beam Control
+  if (ambientLight < 300 && irSensorState == LOW) {
+    // Nighttime and no oncoming vehicles: High beam
+    digitalWrite(HEADLIGHT_PIN, HIGH);
+  } else {
+    // Daytime or oncoming vehicle detected: Low beam
+    digitalWrite(HEADLIGHT_PIN, LOW);
+  }
+
+  // Adaptive Lighting: Adjust headlight angle based on speed or steering
+  int vehicleSpeed = getVehicleSpeed();  // Placeholder for speed input
+  int steeringAngle = getSteeringAngle(); // Placeholder for steering input
+  int headlightAngle = map(steeringAngle, -30, 30, 45, 135);
+  headlightServo.write(headlightAngle);
+
+  // Rain Sensor: Increase headlight intensity if raining
+  if (rainSensorState == LOW) {
+    // Assume increasing intensity is done by some method (e.g., PWM or higher beam setting)
+    increaseHeadlightIntensity();
+  } else {
+    normalHeadlightIntensity();
+  }
+
+  delay(100);  // Adjust delay as necessary
+}
+
+int getVehicleSpeed() {
+  // Implement vehicle speed reading here (e.g., via OBD-II or other sensors)
+  return 0; // Placeholder
+}
+
+int getSteeringAngle() {
+  // Implement steering angle reading here (e.g., via potentiometer or other sensors)
+  return 0; // Placeholder
+}
+
+void increaseHeadlightIntensity() {
+  // Implement headlight intensity control (e.g., increase PWM duty cycle)
+}
+
+void normalHeadlightIntensity() {
+  // Implement normal headlight intensity (e.g., default PWM duty cycle)
+}
